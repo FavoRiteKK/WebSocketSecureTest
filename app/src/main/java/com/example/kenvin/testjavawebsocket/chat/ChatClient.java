@@ -81,7 +81,9 @@ public class ChatClient {
 
 	public void close() {
         Log.d(TAG, "close connection...");
-        webSocketClient.close();
+        if (webSocketClient != null) {
+            webSocketClient.close();
+        }
     }
 
     public interface TestWebSocketListener {

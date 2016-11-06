@@ -20,12 +20,14 @@
             android:onClick="connectToChatServer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_btn"
             android:text="Connect"/>
 
         <Button
             android:onClick="clearMessageLog"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_btn"
             android:text="Clear"/>
     </LinearLayout>
 
@@ -60,6 +62,7 @@
             android:onClick="sendMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_btn"
             android:text="Send"/>
     </LinearLayout>
 </RelativeLayout>
