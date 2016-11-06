@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements ChatClient.TestWe
         mInput = (EditText) findViewById(R.id.input);
 
         WebSocketImpl.DEBUG = true;
-        mChatClient = new AndroidAsyncWebSocketClient(this);
+        mChatClient = new ChatClient(this);
         mChatClient.setSocketListener(this);
     }
 

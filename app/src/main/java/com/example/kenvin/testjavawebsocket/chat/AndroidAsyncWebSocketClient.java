@@ -19,6 +19,7 @@ public class AndroidAsyncWebSocketClient extends ChatClient {
     private final MainActivity mActivity;
 
     public AndroidAsyncWebSocketClient(MainActivity activity) {
+        super(activity);
         mActivity = activity;
     }
 
