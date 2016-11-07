@@ -1,5 +1,7 @@
 package com.example.kenvin.testjavawebsocket.chat;
 
+import android.util.Log;
+
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -11,16 +13,21 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 /**
  * Created by kenvin on 05/11/2016.
  */
-public class MySSLContext {
+public class TrustAllSSLContext {
+    private static final String TAG = "IDK-TrustAllSSLContext";
+
+    private static boolean initialized;
     private static SSLContext sc;
 
     static {
+        initialized = false;
         TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
 
             public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -57,9 +64,20 @@ public class MySSLContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        initialized = true;
     }
 
     public static SSLContext getSSLContext() {
         return sc;
+    }
+
+    public static SSLSocketFactory getSocketFactory() {
+        if (!initialized) {
+            Log.e(TAG, "You havent initialized this context");
+            return null;
+        }
+
+        return sc.getSocketFactory();
     }
 }

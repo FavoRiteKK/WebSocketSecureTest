@@ -1,39 +1,29 @@
 package com.example.kenvin.testjavawebsocket.chat;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.util.Log;
 
-
-import com.example.kenvin.testjavawebsocket.R;
-
-import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.net.URI;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-
+import javax.net.ssl.SSLSocketFactory;
 
 public class ChatClient {
-    public static final String URL_WEBSOCKET = "wss://192.168.0.105:8887";
+//    public static final String URL_WEBSOCKET = "wss://sc.livede55.com:443/socket/member";
+    public static final String URL_WEBSOCKET = "wss://192.168.11.72:8887";
 //    public static final String URL_WEBSOCKET = "wss://echo.websocket.org";
     public static final String TAG = "IDK-ChatClient";
 
     private Context mContext;
     private MyWebSocketClient webSocketClient;
     protected TestWebSocketListener socketListener;
+    private ProgressDialog mDialog;
 
-	public ChatClient(Context context) {
+    public ChatClient(Context context) {
         mContext = context;
 	}
 
@@ -50,54 +40,22 @@ public class ChatClient {
     public void connect() {
         try {
             Log.d(TAG, "connecting...");
+
             // webSocketClient = new ChatClient(new URI(uriField.getText()), area, ( Draft ) draft.getSelectedItem() );
             webSocketClient = new MyWebSocketClient(URI.create(URL_WEBSOCKET));
+            SSLSocketFactory factory = TrustAllSSLContext.getSocketFactory();
+            if (factory != null) {
+                webSocketClient.setSocket(factory.createSocket());
 
-            // load up the key store
-            String STORETYPE = "BKS";
-            String KEYSTORE = "mykeystore.bks";
-            String STOREPASSWORD = "qweasd123";
-            String KEYPASSWORD = "qweasd123";
-
-            KeyStore ks = KeyStore.getInstance( STORETYPE );
-            InputStream in = mContext.getResources().openRawResource(R.raw.mykeystore);
-            try {
-                // Initialize the keystore with the provided trusted certificates
-                // Also provide the password of the keystore
-                ks.load(in, STOREPASSWORD.toCharArray());
-            } finally {
-                in.close();
+                mDialog = ProgressDialog.show(mContext, null, "Connecting...");
+                webSocketClient.connect();
             }
-//            File kf = new File( KEYSTORE );
-//            ks.load( new FileInputStream( kf ), STOREPASSWORD.toCharArray() );
-
-//            KeyManagerFactory kmf = KeyManagerFactory.getInstance( KeyManagerFactory.getDefaultAlgorithm() );
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance( "X509" );
-            kmf.init( ks, KEYPASSWORD.toCharArray() );
-//            TrustManagerFactory tmf = TrustManagerFactory.getInstance( TrustManagerFactory.getDefaultAlgorithm() );
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance( "X509" );
-            tmf.init( ks );
-
-            SSLContext sslContext = null;
-            sslContext = SSLContext.getInstance( "TLS" );
-            sslContext.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );
-            // sslContext.init( null, null, null ); // will use java's default key and trust store which is sufficient unless you deal with self-signed certificates
-//            try {
-//                sslContext = SSLContext.getInstance("TLS");
-//                sslContext.init(null, null, null); // will use java's default key and trust store which is sufficient unless you deal with self-signed certificates
-//            } catch (NoSuchAlgorithmException | KeyManagementException e) {
-//                e.printStackTrace();
-//            }
-
-            WebSocketClient.WebSocketClientFactory factory = new DefaultSSLWebSocketClientFactory(sslContext);
-//            WebSocketClient.WebSocketClientFactory factory = new DefaultSSLWebSocketClientFactory(MySSLContext.getSSLContext());
-
-            webSocketClient.setWebSocketFactory(factory);
-
-            webSocketClient.connectBlocking();
 
         } catch ( Exception ex ) {
             Log.e(TAG, "connection exception: ", ex);
+            if (mDialog != null) {
+                mDialog.dismiss();
+            }
         }
     }
 
@@ -115,12 +73,15 @@ public class ChatClient {
     class MyWebSocketClient extends WebSocketClient {
 
         public MyWebSocketClient(URI serverURI) {
-            super(serverURI);
+            super(serverURI, new Draft_17(), null, 400);  //timeout = 10s
         }
 
         @Override
         public void onOpen(ServerHandshake handshakedata) {
             Log.d(TAG, "connection opened");
+            if (mDialog != null) {
+                mDialog.dismiss();
+            }
             onMessage("You are connected to Chat server " + getURI());
         }
 
@@ -135,14 +96,20 @@ public class ChatClient {
         @Override
         public void onClose(int code, String reason, boolean remote) {
             Log.d(TAG, "onClose");
+            if (mDialog != null) {
+                mDialog.dismiss();
+            }
             onMessage("You are disconnected from Chat server " + getURI());
         }
 
         @Override
         public void onError(Exception ex) {
             Log.e(TAG, "event onError: ", ex);
+            if (mDialog != null) {
+                mDialog.dismiss();
+            }
             onMessage("Exception in Chat server " + getURI());
             onMessage(ex.getMessage());
         }
-    };
+    }
 }
